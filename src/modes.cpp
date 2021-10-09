@@ -25,6 +25,9 @@ void endMode(Mode currentMode) {
 }
 
 void launchMode(Mode newMode) {
+    // if (isRedButtonLongPressed()) {}
+    // else if (isGreenButtonLongPressed()) {}
+
     switch(newMode) {
         case standard:
             setLEDColor(GREEN);
@@ -43,6 +46,12 @@ void launchMode(Mode newMode) {
     }
 }
 
+void launchErrorSequence(ErrorCodes err, bool block) {
+    if (block)
+        while (true) { launchErrorSequence(err); }
+    else
+        launchErrorSequence(err);
+}
 void launchErrorSequence(ErrorCodes err) {
     switch (err) {
         case rtcClockFetchError:

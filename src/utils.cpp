@@ -5,6 +5,10 @@ void block() {
     while (1);
 }
 
+bool isElapsed(unsigned long time, int cd) {
+    return (millis() - time > cd);
+}
+
 uint32_t getSizeLeft() {
     // Initializing SD
 
@@ -36,13 +40,36 @@ uint32_t getSizeLeft() {
 }
 
 bool isRedButtonPressed() {
-    return digitalRead(PIN_BUTTON_RED) == 0;
+    if (digitalRead(PIN_BUTTON_RED) == 0) return true;
+    else {
+        lastRedPressed = millis();
+        consumed = false;
+        return false;
+    }
 }
-bool isGreenButtonPressed() {
-    return digitalRead(PIN_BUTTON_GREEN) == 0;
+bool isRedButtonLongPressed() {
+    if (isRedButtonPressed() && (millis() - lastRedPressed > 5000) && !consumed) {
+        consumed = true;
+        return true;
+    } else return false;
 }
 
-void setLEDColor(Color color) {
+bool isGreenButtonPressed() {
+    if (digitalRead(PIN_BUTTON_GREEN) == 0) return true;
+    else {
+        lastGreenPressed = millis();
+        consumed = false;
+        return false;
+    }
+}
+bool isGreenButtonLongPressed() {
+    if (isGreenButtonPressed() && (millis() - lastGreenPressed > 5000) && !consumed) {
+        consumed = true;
+        return true;
+    } else return false;
+}
+
+void setLEDColor(Color &color) {
     led.setColorRGB(0, color.r, color.g, color.b);
 }
 
@@ -58,24 +85,30 @@ String getGpsData() {
     return result;
 }
 
+float getTemperature() { return bme.readTemperature(); }
+float getPressure() { return bme.readPressure() / 100.0F; }
+float getAltitude() { return bme.readAltitude(1013.25); }
+float getHumidity() { return bme.readHumidity(); }
 
 int getConfig(ConfigID id) { return EEPROM.read(id); }
 void saveConfig(ConfigID id, int newValue) { EEPROM.update(id, newValue); }
 void restoreConfig() {
-    saveConfig(ConfigID::LUMIN, 1);
-    saveConfig(ConfigID::LUMIN_LOW, 255);
-    saveConfig(ConfigID::LUMIN_HIGH, 768);
-    saveConfig(ConfigID::TEMP_AIR, 1);
-    saveConfig(ConfigID::MIN_TEMP_AIR, -10);
-    saveConfig(ConfigID::MAX_TEMP_AIR, 60);
-    saveConfig(ConfigID::HYGR, 1);
-    saveConfig(ConfigID::HYGR_MINT, 0);
-    saveConfig(ConfigID::HYGR_MAXT, 50);
-    saveConfig(ConfigID::PRESSURE, 1);
-    saveConfig(ConfigID::PRESSURE_MIN, 850);
-    saveConfig(ConfigID::PRESSURE_MAX, 1080);
+    saveConfig(LOG_INTERVAL, 10);
+    saveConfig(FILE_MAX_SIZE, 4096);
+    saveConfig(TIMEOUT, 30);
+    saveConfig(LUMIN, 1);
+    saveConfig(LUMIN_LOW, 255);
+    saveConfig(LUMIN_HIGH, 768);
+    saveConfig(TEMP_AIR, 1);
+    saveConfig(MIN_TEMP_AIR, -10);
+    saveConfig(MAX_TEMP_AIR, 60);
+    saveConfig(HYGR, 1);
+    saveConfig(HYGR_MINT, 0);
+    saveConfig(HYGR_MAXT, 50);
+    saveConfig(PRESSURE, 1);
+    saveConfig(PRESSURE_MIN, 850);
+    saveConfig(PRESSURE_MAX, 1080);
 }
-
 
 void configCmdHandler() {
     if (Serial.available()) {
@@ -84,8 +117,8 @@ void configCmdHandler() {
     }
 }
 void configCmdHandler(String cmd) {
-    if (cmd == "RESET");
-    else if (cmd == "VERSION");
+    if (cmd == "RESET") restoreConfig();
+    else if (cmd == "VERSION") Serial.println("v1.0.0, lot n°0001");
     else if (cmd.startsWith("LOG_INTERVAL="));
     else if (cmd.startsWith("FILE_MAX_SIZE="));
     else if (cmd.startsWith("TIMEOUT="));

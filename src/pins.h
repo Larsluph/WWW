@@ -11,4 +11,6 @@
 #define PIN_LED_CLK 8
 #define PIN_LED_DATA 9
 
+#define ADDR_BME280 0x76
+
 #endif

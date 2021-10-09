@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 
+// available modes for WWW
 enum Mode {
     standard,
     configuration,
@@ -10,6 +11,7 @@ enum Mode {
     economique
 };
 
+// error codes for error sequences
 enum ErrorCodes {
     rtcClockFetchError,
     gpsFetchError,
@@ -19,7 +21,11 @@ enum ErrorCodes {
     sdAccessDenied
 };
 
+// config byte address in EEPROM
 enum ConfigID {
+    LOG_INTERVAL,
+    FILE_MAX_SIZE,
+    TIMEOUT,
     LUMIN,
     LUMIN_LOW,
     LUMIN_HIGH,
@@ -31,9 +37,13 @@ enum ConfigID {
     HYGR_MAXT,
     PRESSURE,
     PRESSURE_MIN,
-    PRESSURE_MAX
+    PRESSURE_MAX,
+    CLOCK,
+    DATE,
+    DAY
 };
 
+// represents a color to use with RGB LED
 struct Color {
     byte r;
     byte g;
