@@ -25,9 +25,6 @@ void endMode(Mode currentMode) {
 }
 
 void launchMode(Mode newMode) {
-    // if (isRedButtonLongPressed()) {}
-    // else if (isGreenButtonLongPressed()) {}
-
     switch(newMode) {
         case standard:
             setLEDColor(GREEN);
@@ -46,6 +43,28 @@ void launchMode(Mode newMode) {
     }
 }
 
+void iterErrorSequence(Color a, Color b, bool sub) {
+    if (millis() - lastToggle >= frequence) {
+        lastToggle = millis();
+        if (intermittence) {
+            setLEDColor(b);
+        } else {
+            setLEDColor(a);
+        }
+
+        if (sub) {
+            if (intermittence && subIntermittence) {
+                intermittence = !intermittence;
+                subIntermittence = !subIntermittence;
+            } else if (intermittence) {
+                subIntermittence = !subIntermittence;
+            } else {
+                intermittence = !intermittence;
+            }
+        } else intermittence = !intermittence;
+    }
+}
+
 void launchErrorSequence(ErrorCodes err, bool block) {
     if (block)
         while (true) { launchErrorSequence(err); }
@@ -55,86 +74,22 @@ void launchErrorSequence(ErrorCodes err, bool block) {
 void launchErrorSequence(ErrorCodes err) {
     switch (err) {
         case rtcClockFetchError:
-            if (millis() - lastToggle >= frequence) {
-                lastToggle = millis();
-                if (intermittence) {
-                    setLEDColor(BLUE);
-                } else {
-                    setLEDColor(RED);
-                }
-                intermittence = !intermittence;
-            }
+            iterErrorSequence(RED, BLUE, false);
             break;
         case gpsFetchError:
-            if (millis() - lastToggle >= frequence) {
-                lastToggle = millis();
-                if (intermittence) {
-                    setLEDColor(YELLOW);
-                } else {
-                    setLEDColor(RED);
-                }
-                intermittence = !intermittence;
-            }
+            iterErrorSequence(RED, YELLOW, false);
             break;
         case probeFetchError:
-            if (millis() - lastToggle >= frequence) {
-                lastToggle = millis();
-                if (intermittence) {
-                    setLEDColor(GREEN);
-                } else {
-                    setLEDColor(RED);
-                }
-                intermittence = !intermittence;
-            }
+            iterErrorSequence(RED, GREEN, false);
             break;
         case probeInconsistentData:
-            if (millis() - lastToggle >= frequence) {
-                lastToggle = millis();
-                if (intermittence) {
-                    setLEDColor(GREEN);
-                } else {
-                    setLEDColor(RED);
-                }
-
-                if (intermittence && subIntermittence) {
-                    intermittence = !intermittence;
-                    subIntermittence = !subIntermittence;
-                } else if (intermittence) {
-                    subIntermittence = !subIntermittence;
-                } else {
-                    intermittence = !intermittence;
-                }
-            }
+            iterErrorSequence(RED, GREEN, true);
             break;
         case sdStorageFull:
-            if (millis() - lastToggle >= frequence) {
-                lastToggle = millis();
-                if (intermittence) {
-                    setLEDColor(WHITE);
-                } else {
-                    setLEDColor(RED);
-                }
-                intermittence = !intermittence;
-            }
+            iterErrorSequence(RED, WHITE, false);
             break;
         case sdAccessDenied:
-            if (millis() - lastToggle >= frequence) {
-                lastToggle = millis();
-                if (intermittence) {
-                    setLEDColor(WHITE);
-                } else {
-                    setLEDColor(RED);
-                }
-                
-                if (intermittence && subIntermittence) {
-                    intermittence = !intermittence;
-                    subIntermittence = !subIntermittence;
-                } else if (intermittence) {
-                    subIntermittence = !subIntermittence;
-                } else {
-                    intermittence = !intermittence;
-                }
-            }
+            iterErrorSequence(RED, WHITE, true);
             break;
         default:
             break;

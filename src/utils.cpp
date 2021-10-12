@@ -10,25 +10,6 @@ bool isElapsed(unsigned long time, int cd) {
 }
 
 uint32_t getSizeLeft() {
-    // Initializing SD
-
-    Sd2Card card;
-    if (!card.init(SPI_FULL_SPEED, PIN_SD)) {
-        // TODO: error opening SD Card
-        // card.errorCode() == SD_CARD_ERROR_CMD0
-        // -> timeout
-        Serial.println("Can't detect SD Card!");
-        block();
-    }
-
-    // Initializing volume
-    SdVolume volume;
-    if (!volume.init(&card)) {
-        // TODO: error opening volume (card not formatted ?)
-        Serial.println("Error opening volume.");
-        block();
-    }
-
     SdFile root;
     root.openRoot(&volume);
     uint32_t usedSpace = root.fileSize();
@@ -37,6 +18,17 @@ uint32_t getSizeLeft() {
     uint32_t volumesize = (volume.blocksPerCluster() * volume.clusterCount()) / 2;
 
     return volumesize - usedSpace;
+}
+
+bool writeOnSdFile(String filename, String data) {
+    Serial.println("Opening...");
+    File file = SD.open(filename, FILE_WRITE);
+    if (file) {
+        Serial.println("Writing...");
+        file.println(data);
+        file.close();
+        return true;
+    } else return false;
 }
 
 bool isRedButtonPressed() {
@@ -69,7 +61,7 @@ bool isGreenButtonLongPressed() {
     } else return false;
 }
 
-void setLEDColor(Color &color) {
+void setLEDColor(Color color) {
     led.setColorRGB(0, color.r, color.g, color.b);
 }
 

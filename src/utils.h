@@ -8,10 +8,13 @@
 
 #include "pins.h"
 #include "enums.h"
+#include "modes.h"
 
 static SoftwareSerial serialGPS(PIN_GPS_RX, PIN_GPS_TX);
 static ChainableLED led(PIN_LED_CLK, PIN_LED_DATA, 1);
 static Adafruit_BME280 bme;
+static Sd2Card card;
+static SdVolume volume;
 
 // infinite loop doing nothing
 void block();
@@ -21,6 +24,7 @@ bool isElapsed(unsigned long, int);
 
 // returns size left on SD card (in kB)
 uint32_t getSizeLeft();
+bool writeOnSdFile(String, String);
 
 
 static bool consumed = false;
