@@ -80,22 +80,31 @@ void configCmdHandler() {
 void configCmdHandler(String cmd) {
     if (cmd == "RESET") restoreConfig();
     else if (cmd == "VERSION") Serial.println("v1.0.0, lot n°0001");
-    else if (cmd.startsWith("LOG_INTERVAL="));
-    else if (cmd.startsWith("FILE_MAX_SIZE="));
-    else if (cmd.startsWith("TIMEOUT="));
-    else if (cmd.startsWith("LUMIN="));
-    else if (cmd.startsWith("LUMIN_LOW="));
-    else if (cmd.startsWith("LUMIN_HIGH="));
-    else if (cmd.startsWith("TEMP_AIR="));
-    else if (cmd.startsWith("MIN_TEMP_AIR="));
-    else if (cmd.startsWith("MAX_TEMP_AIR="));
-    else if (cmd.startsWith("HYGR="));
-    else if (cmd.startsWith("HYGR_MINT="));
-    else if (cmd.startsWith("HYGR_MAXT="));
-    else if (cmd.startsWith("PRESSURE="));
-    else if (cmd.startsWith("PRESSURE_MIN="));
-    else if (cmd.startsWith("PRESSURE_MAX="));
-    else if (cmd.startsWith("CLOCK="));
-    else if (cmd.startsWith("DATE="));
-    else if (cmd.startsWith("DAY="));
+    else {
+        int value = cmd.substring(cmd.indexOf('=')+1).toInt();
+        if (value == 0) return;
+
+        if (cmd.startsWith("LOG_INTERVAL="))       saveConfig(LOG_INTERVAL, value);
+        else if (cmd.startsWith("FILE_MAX_SIZE=")) saveConfig(FILE_MAX_SIZE, value);
+        else if (cmd.startsWith("TIMEOUT="))       saveConfig(TIMEOUT, value);
+        else if (cmd.startsWith("LUMIN="))         saveConfig(LUMIN, value);
+        else if (cmd.startsWith("LUMIN_LOW="))     saveConfig(LUMIN_LOW, value);
+        else if (cmd.startsWith("LUMIN_HIGH="))    saveConfig(LUMIN_HIGH, value);
+        else if (cmd.startsWith("TEMP_AIR="))      saveConfig(TEMP_AIR, value);
+        else if (cmd.startsWith("MIN_TEMP_AIR="))  saveConfig(MIN_TEMP_AIR, value);
+        else if (cmd.startsWith("MAX_TEMP_AIR="))  saveConfig(MAX_TEMP_AIR, value);
+        else if (cmd.startsWith("HYGR="))          saveConfig(HYGR, value);
+        else if (cmd.startsWith("HYGR_MINT="))     saveConfig(HYGR_MINT, value);
+        else if (cmd.startsWith("HYGR_MAXT="))     saveConfig(HYGR_MAXT, value);
+        else if (cmd.startsWith("PRESSURE="))      saveConfig(PRESSURE, value);
+        else if (cmd.startsWith("PRESSURE_MIN="))  saveConfig(PRESSURE_MIN, value);
+        else if (cmd.startsWith("PRESSURE_MAX="))  saveConfig(PRESSURE_MAX, value);
+        else if (cmd.startsWith("CLOCK="))         saveConfig(CLOCK, value);
+        else if (cmd.startsWith("DATE="))          saveConfig(DATE, value);
+        else if (cmd.startsWith("DAY="))           saveConfig(DAY, value);
+    }
+}
+
+void readings() {
+
 }
