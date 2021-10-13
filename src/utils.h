@@ -16,30 +16,20 @@ static Adafruit_BME280 bme;
 static Sd2Card card;
 static SdVolume volume;
 
-// infinite loop doing nothing
-void block();
 
 // returns whether {cd} ms has elapsed since {time}
 bool isElapsed(unsigned long, int);
+
 
 // returns size left on SD card (in kB)
 uint32_t getSizeLeft();
 bool writeOnSdFile(String, String);
 
 
-static bool consumed = false;
-static long lastRedPressed = millis();
-static long lastGreenPressed = millis();
-
 // returns whether red button is pressed or not
 bool isRedButtonPressed();
-// returns whether red button is pressed for 5 secs
-bool isRedButtonLongPressed();
-
 // returns whether green button is pressed or not
 bool isGreenButtonPressed();
-// returns whether green button is pressed for 5 secs
-bool isGreenButtonLongPressed();
 
 
 // send cmd to LED to change displayed color

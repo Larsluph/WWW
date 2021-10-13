@@ -1,10 +1,6 @@
 #include "utils.h"
 #include <EEPROM.h>
 
-void block() {
-    while (1);
-}
-
 bool isElapsed(unsigned long time, int cd) {
     return (millis() - time > cd);
 }
@@ -31,35 +27,8 @@ bool writeOnSdFile(String filename, String data) {
     } else return false;
 }
 
-bool isRedButtonPressed() {
-    if (digitalRead(PIN_BUTTON_RED) == 0) return true;
-    else {
-        lastRedPressed = millis();
-        consumed = false;
-        return false;
-    }
-}
-bool isRedButtonLongPressed() {
-    if (isRedButtonPressed() && (millis() - lastRedPressed > 5000) && !consumed) {
-        consumed = true;
-        return true;
-    } else return false;
-}
-
-bool isGreenButtonPressed() {
-    if (digitalRead(PIN_BUTTON_GREEN) == 0) return true;
-    else {
-        lastGreenPressed = millis();
-        consumed = false;
-        return false;
-    }
-}
-bool isGreenButtonLongPressed() {
-    if (isGreenButtonPressed() && (millis() - lastGreenPressed > 5000) && !consumed) {
-        consumed = true;
-        return true;
-    } else return false;
-}
+bool isRedButtonPressed() { return (digitalRead(PIN_BUTTON_RED) == 0) ? true : false; }
+bool isGreenButtonPressed() { return (digitalRead(PIN_BUTTON_GREEN) == 0) ? true : false; }
 
 void setLEDColor(Color color) {
     led.setColorRGB(0, color.r, color.g, color.b);

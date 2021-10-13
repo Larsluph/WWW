@@ -9,7 +9,7 @@ void switchTo(Mode prevMode, Mode newMode) {
     launchMode(newMode);
 }
 
-void endMode(Mode currentMode) {
+void endMode() {
     switch(currentMode) {
         case standard:
             break;
@@ -25,7 +25,8 @@ void endMode(Mode currentMode) {
 }
 
 void launchMode(Mode newMode) {
-    switch(newMode) {
+    currentMode = newMode;
+    switch(currentMode) {
         case standard:
             setLEDColor(GREEN);
             break;
@@ -40,6 +41,31 @@ void launchMode(Mode newMode) {
             break;
         default:
             break;
+    }
+}
+
+void interruptRed() {
+    unsigned long lastPress = millis();
+
+    while (isRedButtonPressed()) {
+        if (isElapsed(lastPress, 5000)) {
+            //TODO: long press handling
+            // switchTo according mode
+
+            return;
+        }
+    }
+}
+void interruptGreen() {
+    unsigned long lastPress = millis();
+
+    while (isRedButtonPressed()) {
+        if (isElapsed(lastPress, 5000)) {
+            //TODO: long press handling
+            // switchTo according mode
+
+            return;
+        }
     }
 }
 
@@ -64,7 +90,6 @@ void iterErrorSequence(Color a, Color b, bool sub) {
         } else intermittence = !intermittence;
     }
 }
-
 void launchErrorSequence(ErrorCodes err, bool block) {
     if (block)
         while (true) { launchErrorSequence(err); }
