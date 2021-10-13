@@ -3,28 +3,9 @@
 #include "utils.h"
 #include "enums.h"
 
-void switchTo(int prevMode, int newMode) { switchTo((Mode)prevMode, (Mode)newMode); }
-void switchTo(Mode prevMode, Mode newMode) {
-    endMode(prevMode);
-    launchMode(newMode);
-}
-
-void endMode() {
-    switch(currentMode) {
-        case standard:
-            break;
-        case economique:
-            break;
-        case maintenance:
-            break;
-        case configuration:
-            break;
-        default:
-            break;
-    }
-}
-
+void launchMode(int newMode) { launchMode((Mode)newMode); }
 void launchMode(Mode newMode) {
+    prevMode = currentMode;
     currentMode = newMode;
     switch(currentMode) {
         case standard:
@@ -32,12 +13,14 @@ void launchMode(Mode newMode) {
             break;
         case economique:
             setLEDColor(BLUE);
+            gpsToggle = true;
             break;
         case maintenance:
             setLEDColor(ORANGE);
             break;
         case configuration:
             setLEDColor(YELLOW);
+            timer = millis();
             break;
         default:
             break;
@@ -51,6 +34,8 @@ void interruptRed() {
         if (isElapsed(lastPress, 5000)) {
             //TODO: long press handling
             // switchTo according mode
+            if (currentMode == standard || currentMode == economique) launchMode(maintenance);
+            else if (currentMode == maintenance) launchMode(prevMode);
 
             return;
         }
@@ -63,6 +48,8 @@ void interruptGreen() {
         if (isElapsed(lastPress, 5000)) {
             //TODO: long press handling
             // switchTo according mode
+            if (currentMode == standard) launchMode(economique);
+            else if (currentMode == economique) launchMode(standard);
 
             return;
         }
@@ -70,8 +57,8 @@ void interruptGreen() {
 }
 
 void iterErrorSequence(Color a, Color b, bool sub) {
-    if (millis() - lastToggle >= frequence) {
-        lastToggle = millis();
+    if (millis() - timer >= frequence) {
+        timer = millis();
         if (intermittence) {
             setLEDColor(b);
         } else {

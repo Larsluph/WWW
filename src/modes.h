@@ -5,18 +5,17 @@
 #include "enums.h"
 #include "utils.h"
 
+static int prevMode = 0;
 static int currentMode = 0;
 
 const int frequence = 1000;
 static bool intermittence = false;
 static bool subIntermittence = false;
-static unsigned long lastToggle = millis();
+static unsigned long timer = millis();
 
-void switchTo(int, int);
-void switchTo(Mode, Mode);
+static bool gpsToggle = true;
 
-void endMode(Mode);
-
+void launchMode(int);
 void launchMode(Mode);
 
 void interruptRed();

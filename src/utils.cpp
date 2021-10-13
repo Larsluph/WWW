@@ -5,6 +5,46 @@ bool isElapsed(unsigned long time, int cd) {
     return (millis() - time > cd);
 }
 
+int getYear() {
+    return clock.year;
+}
+int getMonth() {
+    return clock.month;
+}
+int getDay() {
+    return clock.dayOfMonth;
+}
+int getHours() {
+    return clock.hour;
+}
+int getMinutes() {
+    return clock.minute;
+}
+int getSeconds() {
+    return clock.second;
+}
+String getDate() {
+    String result;
+    result += getYear();
+    result += "-";
+    result += getMonth();
+    result += "-";
+    result += getDay();
+    return result;
+}
+String getTime() {
+    String result;
+    result += getHours();
+    result += ":";
+    result += getMinutes();
+    result += ":";
+    result += getSeconds();
+    return result;
+}
+String getDateTime() {
+    return getDate() + " " + getTime();
+}
+
 uint32_t getSizeLeft() {
     SdFile root;
     root.openRoot(&volume);
@@ -40,9 +80,13 @@ int getLightSensorValue() {
 
 String getGpsData() {
     String result = "";
-    if (serialGPS.available()) {
-        result = serialGPS.readStringUntil('\n');
+    bool t = true;
+
+    while (serialGPS.available() && t) {
+        String data = serialGPS.readStringUntil('\n');
+        if (data.startsWith("$GPGGA")) t = false;
     }
+
     return result;
 }
 
@@ -103,8 +147,4 @@ void configCmdHandler(String cmd) {
         else if (cmd.startsWith("DATE="))          saveConfig(DATE, value);
         else if (cmd.startsWith("DAY="))           saveConfig(DAY, value);
     }
-}
-
-void readings() {
-
 }

@@ -34,6 +34,12 @@ void setup() {
 
     serialGPS.begin(9600);
 
+    clock.begin();
+    clock.fillByYMD(2021, 10, 22);
+    clock.fillByHMS(10, 0, 0);
+    clock.fillDayOfWeek(FRI);
+    clock.setTime();
+
     Serial.begin(9600);
 
     if (isRedButtonPressed()) launchMode(configuration);
@@ -41,5 +47,35 @@ void setup() {
 }
 
 void loop() {
-    
+    String readings;
+    switch (currentMode) {
+        case standard:
+        case economique:
+            if (isElapsed(timer, getConfig(LOG_INTERVAL))) {
+                // horodatage
+                readings = String(getDateTime()) + ": ";
+
+                // pression
+                if (getConfig(PRESSURE)) readings += String(getPressure()) +  "hPa | ";
+                // temperature
+                if (getConfig(TEMP_AIR)) readings += String(getTemperature()) + " °C | ";
+                // hygrometrie
+                if (getConfig(HYGR)) readings += String(getHumidity()) + "% | ";
+
+                // luminosite
+                if (getConfig(LUMIN)) readings += getLightSensorValue();
+
+                if (currentMode == economique) {
+                    if (gpsToggle) readings += getGpsData() + " |";
+                    gpsToggle = !gpsToggle;
+                } else readings += getGpsData() + " |";
+                // GPS
+            }
+        case maintenance:
+        case configuration:
+            if (isElapsed(timer, 30*60)) launchMode(standard);
+            else configCmdHandler();
+        default:
+            break;
+    }
 }
