@@ -8,6 +8,8 @@
 static int prevMode = 0;
 static int currentMode = 0;
 
+static unsigned long lastPress = millis();
+
 const int frequence = 1000;
 static bool intermittence = false;
 static bool subIntermittence = false;

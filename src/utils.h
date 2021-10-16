@@ -11,6 +11,8 @@
 #include "enums.h"
 #include "modes.h"
 
+#define SEALEVELPRESSURE_HPA 1013.25
+
 static SoftwareSerial serialGPS(PIN_GPS_RX, PIN_GPS_TX);
 static ChainableLED led(PIN_LED_CLK, PIN_LED_DATA, 1);
 static Adafruit_BME280 bme;
@@ -29,6 +31,7 @@ int getDay();
 int getHours();
 int getMinutes();
 int getSeconds();
+String getWeekDay();
 String getDate();
 String getTime();
 String getDateTime();
@@ -51,20 +54,6 @@ void setLEDColor(Color);
 
 // returns light level from sensor [0, 800]
 int getLightSensorValue();
-
-
-// returns raw string formatted by GPS
-String getGpsData();
-
-
-// returns temperature from probe [-40, 85] (in °C)
-float getTemperature();
-// returns pressure from probe [300, 1100] (in hPa)
-float getPressure();
-// returns approximate altitude (in meters)
-float getAltitude();
-// returns humidity from probe (+/- 3%) (in %)
-float getHumidity();
 
 
 // reads config byte from EEPROM

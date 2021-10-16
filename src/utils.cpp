@@ -23,8 +23,29 @@ int getMinutes() {
 int getSeconds() {
     return clock.second;
 }
+String getWeekDay() {
+    switch (clock.dayOfWeek) {
+        case MON:
+            return "MON";
+        case TUE:
+            return "TUE";
+        case WED:
+            return "WED";
+        case THU:
+            return "THU";
+        case FRI:
+            return "FRI";
+        case SAT:
+            return "SAT";
+        case SUN:
+            return "SUN";
+    }
+}
+
 String getDate() {
-    String result;
+    clock.getTime();
+    String result = getWeekDay();
+    result += " ";
     result += getYear();
     result += "-";
     result += getMonth();
@@ -33,6 +54,7 @@ String getDate() {
     return result;
 }
 String getTime() {
+    clock.getTime();
     String result;
     result += getHours();
     result += ":";
@@ -57,10 +79,8 @@ uint32_t getSizeLeft() {
 }
 
 bool writeOnSdFile(String filename, String data) {
-    Serial.println("Opening...");
     File file = SD.open(filename, FILE_WRITE);
     if (file) {
-        Serial.println("Writing...");
         file.println(data);
         file.close();
         return true;
@@ -77,23 +97,6 @@ void setLEDColor(Color color) {
 int getLightSensorValue() {
     return analogRead(PIN_LIGHT_SENSOR);
 }
-
-String getGpsData() {
-    String result = "";
-    bool t = true;
-
-    while (serialGPS.available() && t) {
-        String data = serialGPS.readStringUntil('\n');
-        if (data.startsWith("$GPGGA")) t = false;
-    }
-
-    return result;
-}
-
-float getTemperature() { return bme.readTemperature(); }
-float getPressure() { return bme.readPressure() / 100.0F; }
-float getAltitude() { return bme.readAltitude(1013.25); }
-float getHumidity() { return bme.readHumidity(); }
 
 int getConfig(ConfigID id) { return EEPROM.read(id); }
 void saveConfig(ConfigID id, int newValue) { EEPROM.update(id, newValue); }

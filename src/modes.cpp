@@ -5,8 +5,11 @@
 
 void launchMode(int newMode) { launchMode((Mode)newMode); }
 void launchMode(Mode newMode) {
+    Serial.print("Switching to mode ");
+    Serial.println(newMode);
     prevMode = currentMode;
     currentMode = newMode;
+    timer = millis();
     switch(currentMode) {
         case standard:
             setLEDColor(GREEN);
@@ -20,7 +23,6 @@ void launchMode(Mode newMode) {
             break;
         case configuration:
             setLEDColor(YELLOW);
-            timer = millis();
             break;
         default:
             break;
@@ -28,12 +30,10 @@ void launchMode(Mode newMode) {
 }
 
 void interruptRed() {
-    unsigned long lastPress = millis();
-
+    Serial.println("interrupt red!");
+    lastPress = millis();
     while (isRedButtonPressed()) {
         if (isElapsed(lastPress, 5000)) {
-            //TODO: long press handling
-            // switchTo according mode
             if (currentMode == standard || currentMode == economique) launchMode(maintenance);
             else if (currentMode == maintenance) launchMode(prevMode);
 
@@ -42,12 +42,10 @@ void interruptRed() {
     }
 }
 void interruptGreen() {
-    unsigned long lastPress = millis();
-
-    while (isRedButtonPressed()) {
+    Serial.println("interrupt green!");
+    lastPress = millis();
+    while (isGreenButtonPressed()) {
         if (isElapsed(lastPress, 5000)) {
-            //TODO: long press handling
-            // switchTo according mode
             if (currentMode == standard) launchMode(economique);
             else if (currentMode == economique) launchMode(standard);
 
