@@ -6,20 +6,23 @@
 #define DEBUG 0
 #define DEBUG_DELAY 1000
 #define TEST_BATCH 3
+#define ENABLE_READINGS 1
 
 void setup() {
+    Serial.begin(9600);
+    while (!Serial);
+    Serial.println("Starting WWW...");
+
     restoreConfig();
 
-    Serial.begin(9600);
     serialGPS.begin(9600);
-    while (!Serial);
 
     // setup buttons
     pinMode(PIN_BUTTON_RED, INPUT);
     pinMode(PIN_BUTTON_GREEN, INPUT);
 
-    // attachInterrupt(digitalPinToInterrupt(PIN_BUTTON_RED), interruptRed, RISING);
-    // attachInterrupt(digitalPinToInterrupt(PIN_BUTTON_GREEN), interruptGreen, RISING);
+    // attachInterrupt(digitalPinToInterrupt(PIN_BUTTON_RED), interruptRed, CHANGE);
+    // attachInterrupt(digitalPinToInterrupt(PIN_BUTTON_GREEN), interruptGreen, CHANGE);
 
     // setup led and turn off
     led.init();
@@ -126,24 +129,47 @@ void loop() {
     if (isRedButtonPressed()) interruptRed();
     if (isGreenButtonPressed()) interruptGreen();
 
-    String readings = "";
     if (currentMode == configuration) {
-        if (isElapsed(timer, 30*60)) launchMode(standard);
+        if (isElapsed(timer, 1000)) launchMode(standard);
         else configCmdHandler();
     } else {
         if (isElapsed(timer, getConfig(LOG_INTERVAL)*1000)) {
+            Serial.println("reading probes...");
+
+            #if ENABLE_READINGS
+            String readings = "";
+
             // horodatage
-            readings = getDateTime() + " | ";
+            String dt = getDateTime();
+            if (dt) readings += dt + " | ";
+            else readings += "#NA | ";
 
             // pression
-            if (getConfig(PRESSURE)) readings += String(bme.readPressure() / 100.0F) +  "hPa | ";
+            if (getConfig(PRESSURE)) {
+                String pressure = String(bme.readPressure() / 100.0F);
+                if (pressure) readings += pressure + "hPa | ";
+                else readings += "#NA | ";
+            }
             // temperature
-            if (getConfig(TEMP_AIR)) readings += String(bme.readTemperature()) + " °C | ";
+            if (getConfig(TEMP_AIR)) {
+                String temp = String(bme.readTemperature());
+                if (temp) readings += temp + " °C | ";
+                else readings += "#NA | ";
+            }
             // hygrometrie
-            if (getConfig(HYGR)) readings += String(bme.readHumidity()) + "% | ";
+            if (getConfig(HYGR)) {
+                String hygr = String(bme.readHumidity());
+                if (hygr) readings += hygr + "% | ";
+                else readings += "#NA | ";
+            }
 
             // luminosite
-            if (getConfig(LUMIN)) readings += "Lux: " + String(getLightSensorValue()) + " | ";
+            if (getConfig(LUMIN)) {
+                readings += "Lux: ";
+                String lum = String(getLightSensorValue());
+                if (lum) readings += lum + " | ";
+                else readings += "#NA | ";
+            }
 
             // GPS
             if (currentMode == economique) {
@@ -153,13 +179,19 @@ void loop() {
             String gpsData;
             if (serialGPS.available())
             {
-                do {
+                bool t = true;
+                while (t) {
                     gpsData = serialGPS.readStringUntil('\n');
-                } while (!gpsData.startsWith("$GPGGA"));
+                    if (gpsData.startsWith("$GPGGA") || isElapsed(timer, 2000)) t = false;
+                }
             }
-            readings += gpsData + " |";
-            if (!writeOnSdFile("datalog.txt", readings)) launchErrorSequence(sdAccessDenied, true);
+
+            if (gpsData.startsWith("$GPGGA")) readings += gpsData + " |";
+            else readings += "#NA |";
+
             Serial.println(readings);
+            // if (!writeOnSdFile("datalog.txt", readings)) launchErrorSequence(sdAccessDenied, true);
+            #endif
             timer = millis();
         }
     }
