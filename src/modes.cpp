@@ -3,7 +3,6 @@
 #include "utils.h"
 #include "enums.h"
 
-void launchMode(int newMode) { launchMode((Mode)newMode); }
 void launchMode(Mode newMode) {
     Serial.print("Switching to mode ");
     Serial.println(newMode);
