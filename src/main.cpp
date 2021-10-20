@@ -176,12 +176,19 @@ void loop() {
                 gpsToggle = !gpsToggle;
                 if (!gpsToggle) return;
             };
-            String gpsData;
+            String gpsData = "";
             if (serialGPS.available())
             {
                 bool t = true;
                 while (t) {
-                    gpsData = serialGPS.readStringUntil('\n');
+                    String data = serialGPS.readString();
+                    int gpgga_index = data.lastIndexOf("$GPGGA");
+                    int gpgga_end_index = data.indexOf('\n');
+                    int gpgga_end_index2 = data.indexOf('\n');
+                    if (gpgga_end_index != -1 && gpgga_end_index < gpgga_end_index2)
+                        String gpgga = data.substring(gpgga_index, gpgga_end_index);
+                    else
+                        String gpgga = data.substring(gpgga_index, gpgga_end_index2);
                     if (gpsData.startsWith("$GPGGA") || isElapsed(timer, 2000)) t = false;
                 }
             }

@@ -5,8 +5,8 @@
 #include "enums.h"
 #include "utils.h"
 
-static Mode prevMode = 0;
-static Mode currentMode = 0;
+static Mode prevMode = standard;
+static Mode currentMode = standard;
 
 static unsigned long lastPress = millis();
 
