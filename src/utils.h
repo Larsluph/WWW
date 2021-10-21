@@ -19,15 +19,15 @@ static Adafruit_BME280 bme;
 static DS1307 clock;
 
 // returns whether {cd} ms has elapsed since {time}
-bool isElapsed(unsigned long, int);
+bool isElapsed(unsigned long, unsigned long);
 
 
-int getYear();
-int getMonth();
-int getDay();
-int getHours();
-int getMinutes();
-int getSeconds();
+uint8_t getYear();
+uint8_t getMonth();
+uint8_t getDay();
+uint8_t getHours();
+uint8_t getMinutes();
+uint8_t getSeconds();
 String getWeekDay();
 String getDate();
 String getTime();

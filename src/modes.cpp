@@ -54,7 +54,7 @@ void interruptGreen() {
 }
 
 void iterErrorSequence(Color a, Color b, bool sub) {
-    if (millis() - timer >= frequence) {
+    if (isElapsed(timer, frequence)) {
         timer = millis();
         if (intermittence) {
             setLEDColor(b);

@@ -1,26 +1,26 @@
 #include "utils.h"
 #include <EEPROM.h>
 
-bool isElapsed(unsigned long time, int cd) {
+bool isElapsed(unsigned long time, unsigned long cd) {
     return (millis() - time > cd);
 }
 
-int getYear() {
+uint8_t getYear() {
     return clock.year;
 }
-int getMonth() {
+uint8_t getMonth() {
     return clock.month;
 }
-int getDay() {
+uint8_t getDay() {
     return clock.dayOfMonth;
 }
-int getHours() {
+uint8_t getHours() {
     return clock.hour;
 }
-int getMinutes() {
+uint8_t getMinutes() {
     return clock.minute;
 }
-int getSeconds() {
+uint8_t getSeconds() {
     return clock.second;
 }
 String getWeekDay() {
@@ -39,6 +39,8 @@ String getWeekDay() {
             return "SAT";
         case SUN:
             return "SUN";
+        default:
+            return "#NA";
     }
 }
 
@@ -88,8 +90,8 @@ bool writeOnSdFile(String filename, String data) {
     } else return false;
 }
 
-bool isRedButtonPressed() { return (digitalRead(PIN_BUTTON_RED) == 0) ? true : false; }
-bool isGreenButtonPressed() { return (digitalRead(PIN_BUTTON_GREEN) == 0) ? true : false; }
+bool isRedButtonPressed() { return (digitalRead(PIN_BUTTON_RED) == LOW) ? true : false; }
+bool isGreenButtonPressed() { return (digitalRead(PIN_BUTTON_GREEN) == LOW) ? true : false; }
 
 void setLEDColor(Color color) {
     led.setColorRGB(0, color.r, color.g, color.b);
