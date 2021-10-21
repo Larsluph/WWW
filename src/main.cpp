@@ -32,8 +32,8 @@ void setup() {
     pinMode(PIN_BUTTON_RED, INPUT);
     pinMode(PIN_BUTTON_GREEN, INPUT);
 
-    // attachInterrupt(digitalPinToInterrupt(PIN_BUTTON_RED), interruptRed, CHANGE);
-    // attachInterrupt(digitalPinToInterrupt(PIN_BUTTON_GREEN), interruptGreen, CHANGE);
+    // attachInterrupt(digitalPinToInterrupt(PIN_BUTTON_RED), interruptRed, FALLING);
+    // attachInterrupt(digitalPinToInterrupt(PIN_BUTTON_GREEN), interruptGreen, FALLING);
 
     // setup led and turn off
     led.init();
@@ -52,11 +52,9 @@ void setup() {
 
     clock.begin();
     clock.fillByYMD(2021, 10, 22);
-    clock.fillByHMS(10, 0, 0);
+    clock.fillByHMS(10, 30, 0);
     clock.fillDayOfWeek(FRI);
     clock.setTime();
-
-    timer = millis();
 
     if (isRedButtonPressed()) launchMode(configuration);
     else launchMode(standard);
@@ -144,6 +142,7 @@ void loop() {
         case configuration:
             if (isElapsed(timer, 5000)) launchMode(standard);
             else configCmdHandler();
+            break;
         case maintenance:
             break;
         case standard:
@@ -172,33 +171,21 @@ void loop() {
                 Serial.print(" | ");
 
                 // GPS
-                // if (serialGPS.available())
-                // {
-                //     while (true) {
-                //         String gpsData = serialGPS.readStringUntil('\n');
-                //         if (gpsData.indexOf("$GPGGA") != -1) {
-                //             Serial.print(gpsData);
-                //             break;
-                //         }
-                //     }
-                // }
-                    while (true) {
-                        String data;
-                        while (serialGPS.available()) {
-                            data = serialGPS.readStringUntil('\n');
-                        }
-                        int gpgga_index = data.lastIndexOf("$GPGGA");
-                        if (gpgga_index != -1) {
-                            // int gpgga_end_index = data.indexOf('$', gpgga_index);
-                            // if (gpgga_end_index != -1)
-                            //     Serial.print(data.substring(gpgga_index, gpgga_end_index));
-                            // else
-                            //     Serial.print(data.substring(gpgga_index));
-                            Serial.print(data.substring(gpgga_index, data.length()-1));
-                            Serial.println(" |");
-                            break;
-                        }
+                while (true) {
+                    String data;
+                    while (serialGPS.available()) {
+                        data = serialGPS.readStringUntil('\n');
                     }
+                    int gpgga_index = data.lastIndexOf("$GPGGA");
+                    if (gpgga_index != -1) {
+                        Serial.print(data.substring(gpgga_index, data.length()-1));
+                        Serial.println(" |");
+                        break;
+                    }
+                    else {
+                        Serial.println("#NA |");
+                    }
+                }
 
                 Serial.println();
                 // if (!writeOnSdFile("datalog.txt", readings)) launchErrorSequence(sdAccessDenied, true);
