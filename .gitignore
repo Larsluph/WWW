@@ -1,5 +1,7 @@
 .vscode/
-test*
+*test*
+.tmp
+build
 
 # Prerequisites
 *.d

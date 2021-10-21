@@ -5,17 +5,17 @@
 #include "enums.h"
 #include "utils.h"
 
-static Mode prevMode = standard;
-static Mode currentMode = standard;
+extern Mode prevMode;
+extern Mode currentMode;
 
-static unsigned long lastPress = millis();
+extern unsigned long lastPress;
 
 const int frequence = 1000;
-static bool intermittence = false;
-static bool subIntermittence = false;
-static unsigned long timer = millis();
+extern bool intermittence;
+extern bool subIntermittence;
+extern unsigned long timer;
 
-static bool gpsToggle = true;
+extern bool gpsToggle;
 
 void launchMode(Mode);
 

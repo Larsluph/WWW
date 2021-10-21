@@ -69,6 +69,7 @@ String getDateTime() {
 
 uint32_t getSizeLeft() {
     SdFile root;
+    SdVolume volume;
     root.openRoot(&volume);
     uint32_t usedSpace = root.fileSize();
     root.close();

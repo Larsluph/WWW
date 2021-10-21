@@ -17,9 +17,6 @@ static SoftwareSerial serialGPS(PIN_GPS_RX, PIN_GPS_TX);
 static ChainableLED led(PIN_LED_CLK, PIN_LED_DATA, 1);
 static Adafruit_BME280 bme;
 static DS1307 clock;
-static Sd2Card card;
-static SdVolume volume;
-
 
 // returns whether {cd} ms has elapsed since {time}
 bool isElapsed(unsigned long, int);

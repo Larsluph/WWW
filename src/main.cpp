@@ -8,6 +8,17 @@
 #define TEST_BATCH 3
 #define ENABLE_READINGS 1
 
+Mode prevMode = standard;
+Mode currentMode = standard;
+
+unsigned long lastPress = millis();
+
+bool intermittence = false;
+bool subIntermittence = false;
+unsigned long timer = millis();
+
+bool gpsToggle = true;
+
 void setup() {
     Serial.begin(9600);
     while (!Serial);
