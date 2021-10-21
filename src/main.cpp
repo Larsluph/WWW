@@ -129,78 +129,71 @@ void loop() {
     if (isRedButtonPressed()) interruptRed();
     if (isGreenButtonPressed()) interruptGreen();
 
-    if (currentMode == configuration) {
-        if (isElapsed(timer, 1000)) launchMode(standard);
-        else configCmdHandler();
-    } else {
-        if (isElapsed(timer, getConfig(LOG_INTERVAL)*1000)) {
-            Serial.println("reading probes...");
+    switch (currentMode) {
+        case configuration:
+            if (isElapsed(timer, 5000)) launchMode(standard);
+            else configCmdHandler();
+        case maintenance:
+            break;
+        case standard:
+        case economique:
+            if (isElapsed(timer, 2000)) {
+                #if ENABLE_READINGS
+                // horodatage
+                String dt = getDateTime();
+                Serial.print(dt);
+                Serial.print(" | ");
 
-            #if ENABLE_READINGS
-            String readings = "";
+                // pression
+                Serial.print(bme.readPressure() / 100.0F);
+                Serial.print("hPa | ");
 
-            // horodatage
-            String dt = getDateTime();
-            if (dt) readings += dt + " | ";
-            else readings += "#NA | ";
+                // temperature
+                Serial.print(bme.readTemperature());
+                Serial.print(" °C | ");
 
-            // pression
-            if (getConfig(PRESSURE)) {
-                String pressure = String(bme.readPressure() / 100.0F);
-                if (pressure) readings += pressure + "hPa | ";
-                else readings += "#NA | ";
+                // hygrometrie
+                Serial.print(bme.readHumidity());
+                Serial.print("% | ");
+
+                // luminosite
+                Serial.print(getLightSensorValue());
+                Serial.print(" | ");
+
+                // GPS
+                // if (serialGPS.available())
+                // {
+                //     while (true) {
+                //         String gpsData = serialGPS.readStringUntil('\n');
+                //         if (gpsData.indexOf("$GPGGA") != -1) {
+                //             Serial.print(gpsData);
+                //             break;
+                //         }
+                //     }
+                // }
+                    while (true) {
+                        String data;
+                        while (serialGPS.available()) {
+                            data = serialGPS.readStringUntil('\n');
+                        }
+                        int gpgga_index = data.lastIndexOf("$GPGGA");
+                        if (gpgga_index != -1) {
+                            // int gpgga_end_index = data.indexOf('$', gpgga_index);
+                            // if (gpgga_end_index != -1)
+                            //     Serial.print(data.substring(gpgga_index, gpgga_end_index));
+                            // else
+                            //     Serial.print(data.substring(gpgga_index));
+                            Serial.print(data.substring(gpgga_index, data.length()-1));
+                            Serial.println(" |");
+                            break;
+                        }
+                    }
+
+                Serial.println();
+                // if (!writeOnSdFile("datalog.txt", readings)) launchErrorSequence(sdAccessDenied, true);
+                #endif
+                timer = millis();
             }
-            // temperature
-            if (getConfig(TEMP_AIR)) {
-                String temp = String(bme.readTemperature());
-                if (temp) readings += temp + " °C | ";
-                else readings += "#NA | ";
-            }
-            // hygrometrie
-            if (getConfig(HYGR)) {
-                String hygr = String(bme.readHumidity());
-                if (hygr) readings += hygr + "% | ";
-                else readings += "#NA | ";
-            }
-
-            // luminosite
-            if (getConfig(LUMIN)) {
-                readings += "Lux: ";
-                String lum = String(getLightSensorValue());
-                if (lum) readings += lum + " | ";
-                else readings += "#NA | ";
-            }
-
-            // GPS
-            if (currentMode == economique) {
-                gpsToggle = !gpsToggle;
-                if (!gpsToggle) return;
-            };
-            String gpsData = "";
-            if (serialGPS.available())
-            {
-                bool t = true;
-                while (t) {
-                    String data = serialGPS.readString();
-                    int gpgga_index = data.lastIndexOf("$GPGGA");
-                    int gpgga_end_index = data.indexOf('\n');
-                    int gpgga_end_index2 = data.indexOf('\n');
-                    if (gpgga_end_index != -1 && gpgga_end_index < gpgga_end_index2)
-                        String gpgga = data.substring(gpgga_index, gpgga_end_index);
-                    else
-                        String gpgga = data.substring(gpgga_index, gpgga_end_index2);
-                    if (gpsData.startsWith("$GPGGA") || isElapsed(timer, 2000)) t = false;
-                }
-            }
-
-            if (gpsData.startsWith("$GPGGA")) readings += gpsData + " |";
-            else readings += "#NA |";
-
-            Serial.println(readings);
-            // if (!writeOnSdFile("datalog.txt", readings)) launchErrorSequence(sdAccessDenied, true);
-            #endif
-            timer = millis();
-        }
     }
 }
 #endif

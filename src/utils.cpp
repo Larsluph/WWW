@@ -122,6 +122,7 @@ void configCmdHandler() {
     if (Serial.available()) {
         String cmd = Serial.readStringUntil('\n');
         configCmdHandler(cmd);
+        timer = millis();
     }
 }
 void configCmdHandler(String cmd) {

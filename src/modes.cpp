@@ -100,5 +100,7 @@ void launchErrorSequence(ErrorCodes err) {
         case sdAccessDenied:
             iterErrorSequence(RED, WHITE, true);
             break;
+        default:
+            break;
     }
 }
