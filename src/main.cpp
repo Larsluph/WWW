@@ -160,14 +160,12 @@ void loop() {
         case standard:
         case economique:
             if (isElapsed(timer, 2000)) {
-                /////////////////////////////////////////////////////
                 #if ENABLE_READINGS
                 fetchSensorData(readings);
 
                 printToSerial(readings);
                 // if (!writeOnSdFile("DATALOG.TXT", readings)) launchErrorSequence(sdAccessDenied, true);
                 #endif
-                /////////////////////////////////////////////////////
                 timer = millis();
             }
     }
