@@ -1,6 +1,9 @@
 #ifndef utils
 #define utils
 
+#include <stdlib.h>
+#include <string.h>
+
 #include <SD.h>
 #include <SoftwareSerial.h>
 #include <ChainableLED.h>
@@ -28,15 +31,15 @@ uint8_t getDay();
 uint8_t getHours();
 uint8_t getMinutes();
 uint8_t getSeconds();
-String getWeekDay();
-String getDate();
-String getTime();
-String getDateTime();
+const char * getWeekDay();
+char *getDate();
+char *getTime();
+char *getDateTime();
 
 
 // returns size left on SD card (in kB)
 uint32_t getSizeLeft();
-bool writeOnSdFile(String, String);
+bool writeOnSdFile(char *, char *);
 
 
 // returns whether red button is pressed or not
@@ -49,8 +52,17 @@ bool isGreenButtonPressed();
 void setLEDColor(Color);
 
 
-// returns light level from sensor [0, 800]
-int getLightSensorValue();
+void fetchDateTime(char *);
+void fetchPression(float *);
+void fetchTemperature(float *);
+void fetchHumidity(float *);
+void fetchLightLevel(int *);
+void fetchGPS(char *);
+
+void fetchSensorData(Reading *);
+
+
+void printToSerial(Reading *);
 
 
 // reads config byte from EEPROM
@@ -62,6 +74,6 @@ void restoreConfig();
 
 
 void configCmdHandler();
-void configCmdHandler(String);
+void configCmdHandler(char *);
 
 #endif

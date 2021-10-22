@@ -23,7 +23,7 @@ uint8_t getMinutes() {
 uint8_t getSeconds() {
     return clock.second;
 }
-String getWeekDay() {
+const char *getWeekDay() {
     switch (clock.dayOfWeek) {
         case MON:
             return "MON";
@@ -44,29 +44,36 @@ String getWeekDay() {
     }
 }
 
-String getDate() {
+char *getDate() {
     clock.getTime();
-    String result = getWeekDay();
-    result += " ";
-    result += getYear();
-    result += "-";
-    result += getMonth();
-    result += "-";
-    result += getDay();
+    char result[13];
+    char temp[3];
+    strcpy(result, getWeekDay());
+    strcat(result, " ");
+    strcat(result, itoa(getYear(), temp, 10));
+    strcat(result, "-");
+    strcat(result, itoa(getMonth(), temp, 10));
+    strcat(result, "-");
+    strcat(result, itoa(getDay(), temp, 10));
     return result;
 }
-String getTime() {
+char *getTime() {
     clock.getTime();
-    String result;
-    result += getHours();
-    result += ":";
-    result += getMinutes();
-    result += ":";
-    result += getSeconds();
+    char result[9];
+    char temp[3];
+    strcpy(result, itoa(getHours(), temp, 10));
+    strcat(result, ":");
+    strcat(result, itoa(getMinutes(), temp, 10));
+    strcat(result, ":");
+    strcat(result, itoa(getSeconds(), temp, 10));
     return result;
 }
-String getDateTime() {
-    return getDate() + " " + getTime();
+char *getDateTime() {
+    char dt[22];
+    strcpy(dt, getDate());
+    strcat(dt, " ");
+    strcat(dt, getTime());
+    return dt;
 }
 
 uint32_t getSizeLeft() {
@@ -81,7 +88,7 @@ uint32_t getSizeLeft() {
     return volumesize - usedSpace;
 }
 
-bool writeOnSdFile(String filename, String data) {
+bool writeOnSdFile(char *filename, char *data) {
     File file = SD.open(filename, FILE_WRITE);
     if (file) {
         file.println(data);
@@ -97,9 +104,69 @@ void setLEDColor(Color color) {
     led.setColorRGB(0, color.r, color.g, color.b);
 }
 
-int getLightSensorValue() {
-    return analogRead(PIN_LIGHT_SENSOR);
+void fetchDateTime(char *ptr) {
+    strcpy(ptr, getDateTime());
 }
+void fetchPression(float *ptr) {
+    *ptr = bme.readPressure() / 100.0F;
+}
+void fetchTemperature(float *ptr) {
+    *ptr = bme.readTemperature();
+}
+void fetchHumidity(float *ptr) {
+    *ptr = bme.readHumidity();
+}
+void fetchLightLevel(int *ptr) {
+    *ptr = analogRead(PIN_LIGHT_SENSOR);
+}
+void fetchGPS(char *ptr) {
+    while (true) {
+        String data;
+        while (serialGPS.available()) {
+            data = serialGPS.readStringUntil('\n');
+        }
+        int gpgga_index = data.lastIndexOf("$GPGGA");
+        if (gpgga_index != -1) {
+            strcpy(ptr, data.substring(gpgga_index, data.length()-1).c_str());
+            return;
+        }
+    }
+}
+
+void fetchSensorData(Reading *readings) {
+    fetchDateTime(readings->datetime);
+    fetchPression(readings->pression);
+    fetchTemperature(readings->temperature);
+    fetchHumidity(readings->humidity);
+    fetchLightLevel(readings->lightLevel);
+    fetchGPS(readings->gps);
+}
+
+void printToSerial(Reading *readings) {
+    Serial.print(readings->datetime);
+    Serial.print(" | ");
+
+    // pression
+    Serial.print(*readings->pression);
+    Serial.print("hPa | ");
+
+    // temperature
+    Serial.print(*readings->temperature);
+    Serial.print(" *C | ");
+
+    // hygrometrie
+    Serial.print(*readings->humidity);
+    Serial.print("% | ");
+
+    // luminosite
+    Serial.print(*readings->lightLevel);
+    Serial.print(" | ");
+
+    // GPS
+    Serial.print(readings->gps);
+    Serial.println(" |");
+}
+
 
 int getConfig(ConfigID id) { return EEPROM.read(id); }
 void saveConfig(ConfigID id, int newValue) { EEPROM.update(id, newValue); }

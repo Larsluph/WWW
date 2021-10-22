@@ -19,10 +19,22 @@ unsigned long timer = millis();
 
 bool gpsToggle = true;
 
+Reading *readings;
+
 void setup() {
     Serial.begin(9600);
     while (!Serial);
     Serial.println("Starting WWW...");
+
+    //initializing struct
+    readings = (Reading *)malloc(sizeof(Reading));
+
+    readings->datetime = (char *)calloc(22, sizeof(char));
+    readings->pression = (float *)malloc(sizeof(float));
+    readings->temperature = (float *)malloc(sizeof(float));
+    readings->humidity = (float *)malloc(sizeof(float));
+    readings->lightLevel = (int *)malloc(sizeof(int));
+    readings->gps = (char *)calloc(100, sizeof(char));
 
     restoreConfig();
 
@@ -32,8 +44,8 @@ void setup() {
     pinMode(PIN_BUTTON_RED, INPUT);
     pinMode(PIN_BUTTON_GREEN, INPUT);
 
-    // attachInterrupt(digitalPinToInterrupt(PIN_BUTTON_RED), interruptRed, FALLING);
-    // attachInterrupt(digitalPinToInterrupt(PIN_BUTTON_GREEN), interruptGreen, FALLING);
+    attachInterrupt(digitalPinToInterrupt(PIN_BUTTON_RED), interruptRed, FALLING);
+    attachInterrupt(digitalPinToInterrupt(PIN_BUTTON_GREEN), interruptGreen, FALLING);
 
     // setup led and turn off
     led.init();
@@ -148,48 +160,14 @@ void loop() {
         case standard:
         case economique:
             if (isElapsed(timer, 2000)) {
+                /////////////////////////////////////////////////////
                 #if ENABLE_READINGS
-                // horodatage
-                String dt = getDateTime();
-                Serial.print(dt);
-                Serial.print(" | ");
+                fetchSensorData(readings);
 
-                // pression
-                Serial.print(bme.readPressure() / 100.0F);
-                Serial.print("hPa | ");
-
-                // temperature
-                Serial.print(bme.readTemperature());
-                Serial.print(" °C | ");
-
-                // hygrometrie
-                Serial.print(bme.readHumidity());
-                Serial.print("% | ");
-
-                // luminosite
-                Serial.print(getLightSensorValue());
-                Serial.print(" | ");
-
-                // GPS
-                while (true) {
-                    String data;
-                    while (serialGPS.available()) {
-                        data = serialGPS.readStringUntil('\n');
-                    }
-                    int gpgga_index = data.lastIndexOf("$GPGGA");
-                    if (gpgga_index != -1) {
-                        Serial.print(data.substring(gpgga_index, data.length()-1));
-                        Serial.println(" |");
-                        break;
-                    }
-                    else {
-                        Serial.println("#NA |");
-                    }
-                }
-
-                Serial.println();
-                // if (!writeOnSdFile("datalog.txt", readings)) launchErrorSequence(sdAccessDenied, true);
+                printToSerial(readings);
+                // if (!writeOnSdFile("DATALOG.TXT", readings)) launchErrorSequence(sdAccessDenied, true);
                 #endif
+                /////////////////////////////////////////////////////
                 timer = millis();
             }
     }

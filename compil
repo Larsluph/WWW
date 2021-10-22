@@ -1,0 +1,224 @@
+#!/bin/bash
+
+base_include="-I$ARDUINO_PATH/hardware/arduino/avr/cores/arduino -I$ARDUINO_PATH/hardware/arduino/avr/variants/standard"
+includes="-I$ARDUINO_PATH/hardware/arduino/avr/libraries/EEPROM/src"
+includes="$includes -I$ARDUINO_PATH/hardware/arduino/avr/libraries/SoftwareSerial/src"
+includes="$includes -I$ARDUINO_PATH/hardware/arduino/avr/libraries/SPI/src"
+includes="$includes -I$ARDUINO_PATH/hardware/arduino/avr/libraries/Wire/src"
+includes="$includes -I$ARDUINO_PATH/libraries/SD/src"
+includes="$includes -I$ARDUINO_LIB/ChainableLED"
+includes="$includes -I$ARDUINO_LIB/Adafruit_BME280_Library"
+includes="$includes -I$ARDUINO_LIB/Adafruit_BusIO"
+includes="$includes -I$ARDUINO_LIB/Adafruit_Unified_Sensor"
+includes="$includes -I$ARDUINO_LIB/RTC_DS1307"
+
+gcc_base_flags="-c -g -Os -std=gnu11 -ffunction-sections -fdata-sections -flto -fno-fat-lto-objects -mmcu=atmega328p -DF_CPU=16000000L -DARDUINO=10816 -DARDUINO_AVR_UNO -DARDUINO_ARCH_AVR $base_include"
+gcc_add_include="$gcc_base_flags $includes"
+gcc_S_flags="-c -g -x assembler-with-cpp -flto -mmcu=atmega328p -DF_CPU=16000000L -DARDUINO=10816 -DARDUINO_AVR_UNO -DARDUINO_ARCH_AVR $base_include"
+gcc_final_flags="-Os -g -flto -fuse-linker-plugin -Wl,--gc-sections -mmcu=atmega328p -lm"
+
+gpp_flags="-c -g -Os -std=gnu++11 -fpermissive -fno-exceptions -ffunction-sections -fdata-sections -fno-threadsafe-statics -Wno-error=narrowing -flto -mmcu=atmega328p -DF_CPU=16000000L -DARDUINO=10816 -DARDUINO_AVR_UNO -DARDUINO_ARCH_AVR $base_include $includes"
+gpp_core_flags="-c -g -Os -std=gnu++11 -fpermissive -fno-exceptions -ffunction-sections -fdata-sections -fno-threadsafe-statics -Wno-error=narrowing -MMD -flto -mmcu=atmega328p -DF_CPU=16000000L -DARDUINO=10816 -DARDUINO_AVR_UNO -DARDUINO_ARCH_AVR $base_include"
+
+cleanup_dir(){
+    if [ -d "$1" ]; then
+        rm -fr $1/*
+    else
+        mkdir "$1"
+    fi
+}
+
+if [ "${1:0:2}" = "f=" ]; then
+    FOLDER="${1#*=}"
+    shift
+fi
+
+if [ -z $FOLDER ]; then
+    FOLDER="."
+    # echo "specify folder with f=<folder>"
+    # exit 1
+elif [ ! -d "$FOLDER" ]; then
+    echo "Error: '$FOLDER': no such file or directory"
+    exit 1
+fi
+
+cd $FOLDER
+
+printf "\
+######################
+#   COMPIL ARDUINO   #
+######################
+"
+
+echo -n "P1"
+cleanup_dir .tmp
+echo -n "."
+
+cleanup_dir build
+echo ". done [env ready]"
+
+echo -n "P2"
+
+for file in *.c; do
+    [ -f "$file" ] || break
+
+    filename=${file:0:-2}
+    avr-gcc $gcc_add_include "$filename.c" -o ".tmp/$filename.o" || exit 1
+    files="$files .tmp/$filename.o"
+    echo -n "."
+done
+for file in *.cpp; do
+    [ -f "$file" ] || break
+
+    filename=${file:0:-4}
+    avr-g++ $gpp_flags "$filename.cpp" -o ".tmp/$filename.o" || exit 1
+    files="$files .tmp/$filename.o"
+    echo -n "."
+done
+echo " done [.o ready]"
+
+echo
+echo "Compiling libraries..."
+
+echo -n "Wire"
+cleanup_dir .tmp/Wire
+echo -n "."
+avr-g++ $gpp_flags $ARDUINO_PATH/hardware/arduino/avr/libraries/Wire/src/Wire.cpp -o .tmp/Wire/Wire.cpp.o
+files="$files .tmp/Wire/Wire.cpp.o"
+echo -n "."
+avr-gcc $gcc_add_include $ARDUINO_PATH/hardware/arduino/avr/libraries/Wire/src/utility/twi.c -o .tmp/Wire/twi.c.o
+files="$files .tmp/Wire/twi.c.o"
+echo -n "."
+echo "done"
+
+echo -n "SPI"
+cleanup_dir .tmp/SPI
+echo -n "."
+avr-g++ $gpp_flags $ARDUINO_PATH/hardware/arduino/avr/libraries/SPI/src/SPI.cpp -o .tmp/SPI/SPI.cpp.o
+files="$files .tmp/SPI/SPI.cpp.o"
+echo -n "."
+echo "done"
+
+echo -n "SD"
+cleanup_dir .tmp/SD
+echo -n "."
+avr-g++ $gpp_flags $ARDUINO_PATH/libraries/SD/src/File.cpp -o .tmp/SD/File.cpp.o
+files="$files .tmp/SD/File.cpp.o"
+echo -n "."
+avr-g++ $gpp_flags $ARDUINO_PATH/libraries/SD/src/SD.cpp -o .tmp/SD/SD.cpp.o
+files="$files .tmp/SD/SD.cpp.o"
+echo -n "."
+for file in $ARDUINO_PATH/libraries/SD/src/utility/*.cpp; do
+    [ -f "$file" ] || break
+
+    filename="${file##*/}"
+    avr-g++ $gpp_flags $file -o .tmp/SD/$filename.o
+    files="$files .tmp/SD/$filename.o"
+    echo -n "."
+done
+echo "done"
+
+echo -n "SoftwareSerial"
+cleanup_dir .tmp/SoftwareSerial
+echo -n "."
+avr-g++ $gpp_flags $ARDUINO_PATH/hardware/arduino/avr/libraries/SoftwareSerial/src/SoftwareSerial.cpp -o .tmp/SoftwareSerial/SoftwareSerial.cpp.o
+files="$files .tmp/SoftwareSerial/SoftwareSerial.cpp.o"
+echo -n "."
+echo "done"
+
+echo -n "ChainableLED"
+cleanup_dir .tmp/ChainableLED
+echo -n "."
+avr-g++ $gpp_flags $ARDUINO_LIB/ChainableLED/ChainableLED.cpp -o .tmp/ChainableLED/ChainableLED.cpp.o
+files="$files .tmp/ChainableLED/ChainableLED.cpp.o"
+echo -n "."
+echo "done"
+
+echo -n "bme280"
+cleanup_dir .tmp/bme280
+echo -n "."
+avr-g++ $gpp_flags $ARDUINO_LIB/Adafruit_BME280_Library/Adafruit_BME280.cpp -o .tmp/bme280/Adafruit_BME280.cpp.o
+files="$files .tmp/bme280/Adafruit_BME280.cpp.o"
+echo -n "."
+for file in $ARDUINO_LIB/Adafruit_BusIO/*.cpp; do
+    [ -f "$file" ] || break
+
+    filename="${file##*/}"
+    avr-g++ $gpp_flags $file -o .tmp/bme280/$filename.o
+    files="$files .tmp/bme280/$filename.o"
+    echo -n "."
+done
+avr-g++ $gpp_flags $ARDUINO_LIB/Adafruit_Unified_Sensor/Adafruit_Sensor.cpp -o .tmp/bme280/Adafruit_Sensor.cpp.o
+files="$files .tmp/bme280/Adafruit_Sensor.cpp.o"
+echo -n "."
+echo "done"
+
+echo -n "RTC"
+cleanup_dir .tmp/RTC
+echo -n "."
+avr-g++ $gpp_flags $ARDUINO_LIB/RTC_DS1307/DS1307.cpp -o .tmp/RTC/DS1307.cpp.o
+files="$files .tmp/RTC/DS1307.cpp.o"
+echo -n "."
+echo "done"
+
+echo "Libraries compiled"
+
+echo
+echo -n "Compiling Arduino core"
+cleanup_dir .tmp/core
+echo -n "."
+for file in $ARDUINO_PATH/hardware/arduino/avr/cores/arduino/*.S; do
+    [ -f "$file" ] || break
+
+    filename="${file##*/}"
+    avr-gcc $gcc_S_flags $file -o .tmp/core/$filename.o
+    echo -n "."
+done
+for file in $ARDUINO_PATH/hardware/arduino/avr/cores/arduino/*.c; do
+    [ -f "$file" ] || break
+
+    filename="${file##*/}"
+    avr-gcc $gcc_base_flags $file -o .tmp/core/$filename.o
+    echo -n "."
+done
+for file in $ARDUINO_PATH/hardware/arduino/avr/cores/arduino/*.cpp; do
+    [ -f "$file" ] || break
+
+    filename="${file##*/}"
+    avr-g++ $gpp_core_flags $file -o .tmp/core/$filename.o
+    echo -n "."
+done
+echo "done"
+
+echo -n "Archiving core"
+for file in .tmp/core/*.o; do
+    [ -f "$file" ] || break
+
+    filename="${file##*/}"
+    avr-gcc-ar rcs .tmp/core.a $file
+    echo -n "."
+done
+files="$files .tmp/core.a"
+echo "done"
+
+echo -n "P3"
+avr-gcc $gcc_final_flags $files -o build/$FOLDER.elf || exit 1
+echo ". done [links]"
+
+echo -n "P4"
+avr-objcopy -O ihex -R .eeprom build/$FOLDER.elf build/$FOLDER.hex || exit 1
+echo ". done [.hex]"
+# avr-size -A build/$FOLDER.elf
+
+echo -n "Voulez vous commencer le téléversement ? [o/n]: "
+read -r confirm
+
+if [ "$confirm" = "n" -o "$confirm" = "N" ]; then
+    exit 1
+else
+    avrdude -V -pATMEGA328P -carduino -P/dev/ttyACM0 -b115200 -D -Uflash:w:build/$FOLDER.hex:i  || exit 1
+
+    echo "###################"
+    echo "# UPLOAD COMPLETE #"
+    echo "###################"
+fi

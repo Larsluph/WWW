@@ -60,4 +60,21 @@ struct Color {
     }
 };
 
+// {
+//     dt: 22,
+//     pression: 4,
+//     temperature: 4,
+//     humidity: 4,
+//     light: 4,
+//     gps: 100
+// }
+struct Reading {
+    char *datetime;
+    float *pression;
+    float *temperature;
+    float *humidity;
+    int *lightLevel;
+    char *gps;
+};
+
 #endif
